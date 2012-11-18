@@ -1,8 +1,9 @@
 
 package shape3D;
 
+import shape3D.Basis;
+import shape3D.IObjectGL;
 import shape3D.VirtualSphereGL;
-import test.TestGraph;
 import utils.Matrix;
 
 
@@ -16,6 +17,7 @@ import java.awt.event.MouseMotionListener;
 import java.nio.IntBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -23,37 +25,20 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.glu.GLU;
-import javax.vecmath.Color4f;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
 
 import com.jogamp.common.nio.Buffers;
 
-import model.Agent;
-import model.Graph;
-import model.GraphExplorer;
-import model.Path;
 
 /**
  * A scene is made of OpenGL objects.
  * The view can be rotated using the mouse left button.
  * 
- * DONE Put up subgraph definition in SceneGL (or remove)
- * DONE Generate 'n' points on the map, create random graph.
- * TODO from starting point, got to chosen point and then back to start
- * TODO ie. concat of 2 Paths
- * DONE point with the mouse - point with CTRL + mouse
- * DONE cube with also selected state (bigger and transparent)
- * DONE highlight selected object
- * TODO Rotate selected object
- * TODO Translate selected object
  * 
  * @author snowgoon88ATgmailDOTcom
  *
  */
-public class SceneGL implements GLEventListener, MouseListener, MouseMotionListener, KeyListener {
-	
-	
+public class SceneGL implements GLEventListener, MouseListener, MouseMotionListener, KeyListener{
+
 	/** Decimal formating */
 	DecimalFormat df4 = new DecimalFormat( "0.####" );
 	
@@ -65,49 +50,14 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 
 	/** The model : 3 arrows */
 	private Basis _basis = new Basis();
-	/** The model : an agent */
-	private Agent _agent1 = new Agent( new Point3f(-8f, 8f, 0f),
-			                           new Vector3f(10.0f,0f,0f));
-//	private Agent _agent2 = new Agent( new Point3f(-8f, 8f, 0f),
-//                                       new Vector3f(10.0f,0f,0f));
-//	private Agent _agent3 = new Agent( new Point3f(-8f, 8f, 0f),
-//            new Vector3f(0.1f,0f,0f));
 	
-	private ArrayList<Point3f> _traj1 = new ArrayList<Point3f>();
-//	private ArrayList<Point3f> _traj2 = new ArrayList<Point3f>();
-//	private ArrayList<Point3f> _traj3 = new ArrayList<Point3f>();
-	private Path _path = Path.buildExample();
-	//private Graph<Point3f> _graph = TestGraph.buildWPGraph();
-	private Graph<Point3f> _graph = Graph.buildRandomWP(20, 6, 2, -8f, 8f);
-//	
 	/** Viewer */
-	private AgentGL _agent1GL;
-//	private AgentGL _agent2GL;
-//	private AgentGL _agent3GL;
-	private TrajectoryGL _traj1GL;
-//	private TrajectoryGL _traj2GL;
-//	private TrajectoryGL _traj3GL;
-	private PathGL _pathGL;
-	private GraphGL _graphGL;
-	private SubGraphGL _subgraphGL;
-	private PathGL _firstPathGL;
-	private PathGL _secondPathGL;
-	
-	
-	private CubeGL _cubeGL1;
-	private CubeGL _cubeGL2;
+	private ArrayList<IObjectGL> _objects = new ArrayList<IObjectGL>();
 	
 	// Running
 	private boolean _fg_run = false;
 	private long _lastTime = 0L;
 	
-	// Graphe explore mode
-	private boolean _fg_graphexplore_mode = false;
-	private Graph<Point3f> _graphExploreNode;
-	private Graph<Point3f> _graphTarget;
-	private boolean _fg_show_plan = false;
-	private Path _firstPath = new Path();
-	private Path _secondPath = new Path();
 	
 	// Class variables required to implement the virtual sphere.
 	/** VirtualSphere drawn around cue point */
@@ -139,28 +89,12 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 	private void render(GL2 gl) {
 		// Scene render
 		_basis.render( gl );
-		_agent1GL.render(gl);
-		_traj1GL.render(gl);
-//		_agent2GL.render(gl);
-//		_traj2GL.render(gl);
-//		_agent3GL.render(gl);
-//		_traj3GL.render(gl);
-		_pathGL.render(gl);
-		_graphGL.render(gl);
-		if (_fg_graphexplore_mode) {
-			_subgraphGL.render(gl);
-		}
-		if (_fg_show_plan) {
-			_firstPathGL.render(gl);
-			_secondPathGL.render(gl);
-		}
-		_cubeGL1.render(gl);
-		_cubeGL2.render(gl);
 		
+		for (IObjectGL obj : _objects) {
+			obj.render(gl);
+		}
 	}
 	private void renderSelect(GL2 gl) {
-		_cubeGL1.renderSelect(gl);
-		_cubeGL2.renderSelect(gl);
 	}
 	private void startPickup(GL2 gl) {
 		GLU glu = new GLU();
@@ -262,18 +196,6 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 				nearestObjInd = nameID;
 			}
 		}
-		if (nearestObjInd == _cubeGL1.getId()) {
-			_cubeGL1._fg_selected = true;
-			_cubeGL2._fg_selected = false;
-		} 
-		else if (nearestObjInd == _cubeGL2.getId()) {
-			_cubeGL1._fg_selected = false;
-			_cubeGL2._fg_selected = true;
-		}
-		else {
-			_cubeGL1._fg_selected = false;
-			_cubeGL2._fg_selected = false;
-		}
 		
 		_fg_picking = false;
 		// End of Picking
@@ -282,25 +204,12 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 	private void update() {
 		long timeNow = System.nanoTime();
 		float deltaT = (float)(timeNow - _lastTime) / 1000000000.0f;
-		// Attract _agent to 0,0,0
-		//_agent.seekBehavior(new Point3f(0f,0f,0f));
-		_agent1.update(deltaT);
-		_traj1.add(new Point3f(_agent1.getPos()));
-				
-//		_agent2.seekBehavior(new Point3f(0f,0f,0f), deltaT);
-//		_traj2.add(new Point3f(_agent2.getPos()));
-//		
-//		_agent3.wanderBehavior( 1.0f, 0.2f, deltaT);
-//		_traj3.add(new Point3f(_agent3.getPos()));
 		
 		_lastTime = timeNow;
-		
-//		_fg_run = !_fg_run;
-//		System.out.println("Agent _pos="+_agent.getPos().toString()+" _speed="+_agent.getSpeed().toString());
-//		System.out.println("Traj="+_traj1.toString());
-		
 	}
 
+	
+	
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		Point newMouse = e.getPoint();
@@ -510,48 +419,6 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 		// Set the initial view angles.
 		Matrix.rotateZ(Matrix.deg2Rad(-45), _rotMatrix);
 		Matrix.rotateX(Matrix.deg2Rad(-60), _rotMatrix);
-		
-		System.out.println( "Agent._angOZ="+_agent1.getAngOz());
-		
-		// init model
-		_agent1.setupSeekBehavior( new Point3f(0.0f,0.0f,0.0f));
-		_agent1.setupArriveBehavior( new Point3f(0.0f,0.0f,0.0f), 0.2f);
-		_agent1.setupWanderBehevior(1.0f, 0.2f);
-		_agent1.setupFollowPathBehavior( _path, 1.0f);
-		_agent1.setBehavior( Agent.FOLLOW);
-		_traj1.add(new Point3f(_agent1.getPos()));
-		//_traj2.add(new Point3f(_agent2.getPos()));
-		_graphExploreNode = _graph;
-		
-		// init viewer
-		
-		_agent1GL = new AgentGL( _agent1 );
-		_traj1GL = new TrajectoryGL(_traj1);
-		_traj1GL.setColor_fg( new Color4f( 0.8f, 0.0f, 0.8f, 0.5f));
-		_pathGL = new PathGL( _path );
-		_pathGL.setColor_fg( new Color4f( 0.0f, 1.0f, 0.0f, 0.5f));
-		_pathGL.setCycle(true);
-		_graphGL = new GraphGL(_graph);
-		_graphGL.setColor_fg( new Color4f( 0.0f, 1.0f, 1.0f, 0.5f));
-		_subgraphGL = new SubGraphGL(_graphExploreNode);
-		_subgraphGL.setColor_fg(new Color4f( 1.0f, 0.0f, 0.0f, 1.0f));
-		_cubeGL1 = new CubeGL(new Point3f(2f, 2f, 2f), 1.5f);
-		_cubeGL1._fg_selected = true;
-		_cubeGL2 = new CubeGL(new Point3f(-2f, 2f, -2f), 2.5f);
-		_cubeGL2.setColor_fg(new Color4f( 1.0f, 0.8f, 0.2f, 1.0f));
-		_firstPathGL = new PathGL(_firstPath);
-		_firstPathGL.setColor_fg( new Color4f( 0.0f, 1.0f, 1.0f, 1.0f));
-		_secondPathGL = new PathGL(_secondPath);
-		_secondPathGL.setColor_fg( new Color4f( 1.0f, 1.0f, 0.0f, 1.0f));
-		
-//		_agent2GL = new AgentGL( _agent2 );
-//		_agent2GL.setColor_fg( new Color4f(0.8f, 0.8f, 0.0f, 1.0f));
-//		_traj2GL = new TrajectoryGL(_traj2);
-//		_traj2GL.setColor_fg(new Color4f(0.8f, 0.8f, 0.0f, 0.5f));
-//		_agent3GL = new AgentGL( _agent3 );
-//		_agent3GL.setColor_fg( new Color4f(0.0f, 0.8f, 0.8f, 1.0f));
-//		_traj3GL = new TrajectoryGL(_traj3);
-//		_traj3GL.setColor_fg(new Color4f(0.0f, 0.8f, 0.8f, 0.5f));
 	}
 
 	@Override
@@ -648,90 +515,37 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 			_fg_run = ! _fg_run;
 		}
 		
-		// VK_A : speed to 0.
-		else if (e.getKeyCode() == KeyEvent.VK_A) {
-			_agent1.setSpeed(new Vector3f());
-		}
-		// VK_Z : debug A
-		else if (e.getKeyCode() == KeyEvent.VK_Z) {
-			_agent1GL._fg_debug = ! _agent1GL._fg_debug;
-		}
-		else if (e.getKeyCode() == KeyEvent.VK_Y) {
-			System.out.println("Agent _pos="+_agent1.getPos().toString()+" _speed="+_agent1.getSpeed().toString());
-		}
-		else if (e.getKeyCode() == KeyEvent.VK_T) {
-			System.out.println("Traj="+_traj1.toString());
-		}
-		
-		// VK_L : draw link or not.
-		else if (e.getKeyCode() == KeyEvent.VK_L) {
-			_graphGL._fg_draw_link = !_graphGL._fg_draw_link;
-		}
-		// VK_M : graphmode or not.
-		else if (e.getKeyCode() == KeyEvent.VK_M) {
-			_fg_graphexplore_mode = !_fg_graphexplore_mode;
-		}
-		// VK_K : showPlan or not.
-		else if (e.getKeyCode() == KeyEvent.VK_K) {
-			_fg_show_plan = !_fg_show_plan;
-			if (_fg_show_plan) {
-				if (_firstPath != null ) {
-					System.out.println("First\n"+_firstPath.toString());
-				}
-				else {
-					System.out.println("First is NULL");
-				}
-				if (_firstPath != null ) {
-					System.out.println("Second\n"+_secondPath.toString());
-				}
-				else {
-					System.out.println("Second is NULL");
-				}
-			}
-		}
-		// VK_LEFT : graphmode alter direction chosen.
-		else if (e.getKeyCode() == KeyEvent.VK_LEFT ) {
-			if (_fg_graphexplore_mode==true) {
-			_subgraphGL.incIndex();
-			}
-		}
-		// VK_C : graphmode : select as target.
-		else if (e.getKeyCode() == KeyEvent.VK_C ) {
-			if (_fg_graphexplore_mode==true) {
-				_graphTarget = _subgraphGL.getCurrentGraph();
-				// Plan to target
-				GraphExplorer explo = new GraphExplorer(_graph);
-				_firstPath = explo.findShortestPath(_graphTarget.getElem());
-				explo = new GraphExplorer(_graphTarget);
-				_secondPath = explo.findShortestPath(_graph.getElem());
-				
-				_firstPathGL = new PathGL(_firstPath);
-				_firstPathGL.setColor_fg( new Color4f( 0.0f, 1.0f, 1.0f, 1.0f));
-				_secondPathGL = new PathGL(_secondPath);
-				_secondPathGL.setColor_fg( new Color4f( 1.0f, 1.0f, 0.0f, 1.0f));
-			}
-		}
-		// VK_RIGHT : graphmode alter direction chosen.
-		else if (e.getKeyCode() == KeyEvent.VK_RIGHT ) {
-			if (_fg_graphexplore_mode==true) {
-				_subgraphGL.decIndex();
-			}
-		}
-		// VK_ENTER : graphmode change node.
-		else if (e.getKeyCode() == KeyEvent.VK_ENTER ) {
-			if (_fg_graphexplore_mode==true) {
-				_subgraphGL.advance();
-			}
-		}
-		// VK_W : debug subgraph.
-		else if (e.getKeyCode() == KeyEvent.VK_W && _fg_graphexplore_mode==true) {
-			_subgraphGL._fg_verb = true;
-		}
 	}
+
 	@Override
 	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
 		
+	}
+	
+	public int size() {
+		return _objects.size();
+	}
+	public boolean isEmpty() {
+		return _objects.isEmpty();
+	}
+	
+	public boolean contains(IObjectGL obj) {
+		return _objects.contains( obj );
+	}
+	
+	public Iterator<IObjectGL> iterator() {
+		return _objects.iterator();
+	}
+
+	public boolean add(IObjectGL obj) {
+		return _objects.add( obj );
+	}
+	public boolean remove(IObjectGL obj) {
+		return _objects.remove( obj );
+	}
+	
+	public void clear() {
+		_objects.clear();
 	}
 
 }

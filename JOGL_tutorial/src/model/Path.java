@@ -6,6 +6,7 @@ package model;
 import java.util.ArrayList;
 
 import javax.vecmath.Point3f;
+import javax.vecmath.Point3f;
 
 /**
  * @author snowgoon88ATgmailDOTcom

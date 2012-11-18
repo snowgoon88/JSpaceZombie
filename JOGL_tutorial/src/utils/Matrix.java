@@ -16,6 +16,7 @@
 **/
 package utils;
 
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 
@@ -74,7 +75,7 @@ public class Matrix {
 		return res;
 	}
 	/**
-	 * From a Vector3f vec, get 2 first euler angles : 0x->vxy and vxy->vec
+	 * From a Vector3d vec, get 2 first euler angles : 0x->vxy and vxy->vec
 	 * @param vec
 	 * @return angles 0x->vxy and vxy->vec 
 	 */
@@ -83,7 +84,7 @@ public class Matrix {
 		// Projection on Oxy
 		Vector3f vxy = new Vector3f(vec);
 		vxy.z = 0;
-		if( vxy.length() > 0.0001 ) {
+		if( vxy.length() > 0.0001f ) {
 			// Angle Ox,vxy
 			Vector3f ux = new Vector3f( 1f, 0f, 0f);
 			// Make sure in [-1f,1f]

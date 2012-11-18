@@ -9,6 +9,7 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GL;
 import javax.vecmath.Color4f;
 import javax.vecmath.Point3f;
+import javax.vecmath.Point3f;
 
 import utils.GLUtils;
 

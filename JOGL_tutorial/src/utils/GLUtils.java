@@ -95,6 +95,54 @@ public class GLUtils {
         gl.glEnd();
         
     }
+    /**
+     *  <p> Draws the outline of a 2D circle centered
+     *      on the specified point and contained in the XY plane (z=0).
+     *      Uses an efficient parametric algorithm to avoid expensive
+     *      calls to triginometric functions.  Verticies are evenly
+     *      spaced in parameter space.
+     *  </p>
+     *
+     *  <p> Reference:  Rogers, D.F., Adams, J.A.,
+     *                  _Mathematical_Elements_For_Computer_Graphics_,
+     *                  McGraw-Hill, 1976, pg 103, 216.
+     *  </p>
+     *
+     *  @param  gl   Reference to the graphics context we are rendering into.
+     *  @param  x    X Coordinate of the center of the circle.
+     *  @param  y    Y Coordinate of the center of the circle.
+     *  @param  radius    The radius of the cirlce.
+     *  @param  numVerts  The number of verticies to use.
+     **/
+     public static final void drawCircled(GL2 gl, double x, double y, double radius, int numVerts) {
+
+         //  Calculate the parametric increment.
+         double p = 2*Math.PI/(numVerts-1);
+         double c1 = Math.cos(p);
+         double s1 = Math.sin(p);
+
+         //  Calculate the initial point.
+         double xm1 = x + radius;
+         double ym1 = y;
+
+         //  Begin rendering the circle.
+         gl.glBegin(GL2.GL_LINE_LOOP);
+         for (int m=0; m < numVerts; ++m) {
+             double xm1mx = xm1 - x;
+             double ym1mx = ym1 - y;
+             double x1 = x + xm1mx*c1 - ym1mx*s1;
+             double y1 = y + xm1mx*s1 + ym1mx*c1;
+
+             //  Draw the next line segment.
+             gl.glVertex3d(x1, y1, 0);
+
+             //  Prepare for the next loop.
+             xm1 = x1;
+             ym1 = y1;
+         }
+         gl.glEnd();
+         
+     }
 
     
     /**

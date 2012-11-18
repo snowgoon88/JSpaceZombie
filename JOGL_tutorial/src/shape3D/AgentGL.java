@@ -16,7 +16,7 @@ import model.Agent;
  * @author @author snowgoon88ATgmailDOTcom
  *
  */
-public class AgentGL {
+public class AgentGL implements IObjectGL {
 	/** model linked */
 	private Agent _agent;
 	/** Color of the agent */
@@ -59,9 +59,9 @@ public class AgentGL {
 
 		// set pose
 		gl.glPushMatrix();
-		gl.glTranslatef( _agent.getPos().x, _agent.getPos().y, _agent.getPos().z );
+		gl.glTranslated( _agent.getPos().x, _agent.getPos().y, _agent.getPos().z );
 		gl.glPushMatrix();
-		gl.glRotatef( Matrix.rad2Deg(_agent.getAngOz()), 0.0f, 0.0f, 1.0f);
+		gl.glRotated( Math.toDegrees(_agent.getAngOz()), 0.0f, 0.0f, 1.0f);
 
 		// draw player
 		gl.glPolygonMode (GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);  
@@ -104,6 +104,12 @@ public class AgentGL {
 	}
 	public void setColor_fg(float r, float g, float b, float a) {
 		this._color_fg = new Color4f(r,g,b,a);
+	}
+
+	@Override
+	public void renderSelect(GL2 gl) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

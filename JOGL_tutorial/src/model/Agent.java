@@ -8,6 +8,7 @@ import java.util.Random;
 import javax.vecmath.Point3f;
 import javax.vecmath.Vector3f;
 
+import shape3D.IObjectGL;
 import utils.Matrix;
 
 /**
@@ -104,7 +105,7 @@ public class Agent implements Physical {
 		center.scale( _max_speed * 0.001f );
 		// new angle
 		_ang_wander = _ang_wander + (float) rd.nextGaussian() * noise;
-		center.add( new Vector3f(0.001f*span*(float)Math.cos(_ang_wander), 0.001f*span*(float)Math.sin(_ang_wander), 0f));
+		center.add( new Vector3f(0.001f*span*(float)Math.cos(_ang_wander), 0.001f*span*(float)Math.sin(_ang_wander), 0.0f));
 		center.add(_pos);
 		seekBehavior(new Point3f(center), deltaT);
 	}
