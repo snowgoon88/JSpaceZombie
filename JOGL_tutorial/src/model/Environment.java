@@ -74,9 +74,6 @@ public class Environment {
 		w = new Wall( new Point3f(new float [] {-3.0f, -1.0f, 0.0f}),
                 new Point3f(new float [] {-3.0f, 3.0f, 0.0f}));
 		_walls.add( w );
-		w = new Wall( new Point3f(new float [] {-1.0f, -2.0f, 0.0f}),
-                new Point3f(new float [] {-5.0f, 5.0f, 0.0f}));
-		_walls.add( w );
 	}
 	
 	public ArrayList<Wall> getWalls() {
