@@ -15,6 +15,7 @@ import com.jogamp.opengl.util.FPSAnimator;
 import shape3D.AgentGL;
 import shape3D.EnvironmentGL;
 import shape3D.SceneGL;
+import utils.Matrix;
 
 import model.Agent;
 import model.Environment;
@@ -70,6 +71,8 @@ public class SimpleCircuit {
 		canvas.addMouseListener(scene);
 		canvas.addMouseMotionListener(scene);
 		canvas.addKeyListener(scene);
+		canvas.addKeyListener(new TopLevelKeyListener());
+		canvas.addKeyListener(new AgentKeyListener() );
 
 		// Animator with consistent FPS
 		FPSAnimator animator = new FPSAnimator(canvas, 60);
@@ -91,6 +94,44 @@ public class SimpleCircuit {
 		scene.add(_robGL);
 	}
 
+	class AgentKeyListener implements KeyListener {
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+		@Override
+		public void keyPressed(KeyEvent e) {
+			// Arrows up/down : move agent forward/backward
+			if (e.getKeyCode() == KeyEvent.VK_UP) {
+				Point3f pos = _rob.getPos();
+				pos.setX(pos.x + 0.5f * (float)Math.cos(_rob.getAngOz()));
+				pos.setY(pos.y + 0.5f * (float)Math.sin(_rob.getAngOz()));
+				_rob.setPos(pos);
+			}
+			else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+				Point3f pos = _rob.getPos();
+				pos.setX(pos.x - 0.5f * (float)Math.cos(_rob.getAngOz()));
+				pos.setY(pos.y - 0.5f * (float)Math.sin(_rob.getAngOz()));
+				_rob.setPos(pos);
+			}
+			// Arrows left/right : rotate agent left/right by PI/4
+			else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+				_rob.setAngOz(Matrix.clipRAd(_rob.getAngOz()+(float)Math.PI/4));
+			}
+			else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+				_rob.setAngOz(Matrix.clipRAd(_rob.getAngOz()-(float)Math.PI/4));
+			}
+		}
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+	
 	/**
 	 * Close Window when ESC
 	 * 
