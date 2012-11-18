@@ -64,12 +64,15 @@ public class Wall {
 		// Si (_u x dir) = 0 : parralele
 		Vector3f cross = new Vector3f();
 		cross.cross(_u, dir);
-		if (Math.abs(cross.length()) > _epsilon ) {
+		if (Math.abs(cross.z) > _epsilon ) {
 			Vector3f res = new Vector3f(from);
 			res.sub(_ori);
+			Vector3f diff = new Vector3f(res);
 			res.cross(res, dir);
-			float t = res.length() / cross.length();
-			if (t >= 0.0 && t <= _length ) {
+			float t = res.z / cross.z;
+			diff.cross(diff,_u);
+			float u = diff.z / cross.z;
+			if (t >= 0.0 && t <= _length && u > 0.0 ) {
 				res = new Vector3f(_u);
 				res.scale(t);
 				res.add(_ori);

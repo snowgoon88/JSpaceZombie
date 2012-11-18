@@ -14,11 +14,13 @@ import com.jogamp.opengl.util.FPSAnimator;
 
 import shape3D.AgentGL;
 import shape3D.EnvironmentGL;
+import shape3D.ScannerGL;
 import shape3D.SceneGL;
 import utils.Matrix;
 
 import model.Agent;
 import model.Environment;
+import model.Scanner;
 
 /**
  * 
@@ -32,6 +34,7 @@ public class SimpleCircuit {
 	
 	Environment _env;
 	Agent _rob;
+	Scanner [] _scan;
 	JFrame _frame;
 	
 	public static void main(String[] args) {
@@ -85,6 +88,16 @@ public class SimpleCircuit {
 		_rob = new Agent();
 		_rob.setPos(new Point3f(new float [] {0.0f, 4.0f, 0.0f}));
 		_rob.setAngOz(0.0f);
+		_scan = new Scanner[5];
+		_scan[0] = new Scanner(_rob, (float)Math.PI/2f, 2.0f);
+		_scan[1] = new Scanner(_rob, (float)Math.PI/6f, 2.0f);
+		_scan[2] = new Scanner(_rob, 0.0f, 2.0f);
+		_scan[3] = new Scanner(_rob, -(float)Math.PI/6f, 2.0f);
+		_scan[4] = new Scanner(_rob, -(float)Math.PI/2f, 2.0f);
+		for (int i = 0; i < _scan.length; i++) {
+			_scan[i].update();
+			_scan[i].scan(_env);
+		}
 	}
 	public void setupScene(SceneGL scene) {
 		EnvironmentGL _envGL = new EnvironmentGL(_env);
@@ -92,6 +105,11 @@ public class SimpleCircuit {
 
 		AgentGL _robGL = new AgentGL(_rob);
 		scene.add(_robGL);
+		
+		for (int i = 0; i < _scan.length; i++) {
+			ScannerGL _scanGL = new ScannerGL(_scan[i]);
+			scene.add(_scanGL);
+		}
 	}
 
 	class AgentKeyListener implements KeyListener {
@@ -109,19 +127,35 @@ public class SimpleCircuit {
 				pos.setX(pos.x + 0.5f * (float)Math.cos(_rob.getAngOz()));
 				pos.setY(pos.y + 0.5f * (float)Math.sin(_rob.getAngOz()));
 				_rob.setPos(pos);
+				for (int i = 0; i < _scan.length; i++) {
+					_scan[i].update();
+					_scan[i].scan(_env);
+				}
 			}
 			else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
 				Point3f pos = _rob.getPos();
 				pos.setX(pos.x - 0.5f * (float)Math.cos(_rob.getAngOz()));
 				pos.setY(pos.y - 0.5f * (float)Math.sin(_rob.getAngOz()));
 				_rob.setPos(pos);
+				for (int i = 0; i < _scan.length; i++) {
+					_scan[i].update();
+					_scan[i].scan(_env);
+				}
 			}
 			// Arrows left/right : rotate agent left/right by PI/4
 			else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 				_rob.setAngOz(Matrix.clipRAd(_rob.getAngOz()+(float)Math.PI/4));
+				for (int i = 0; i < _scan.length; i++) {
+					_scan[i].update();
+					_scan[i].scan(_env);
+				}
 			}
 			else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
 				_rob.setAngOz(Matrix.clipRAd(_rob.getAngOz()-(float)Math.PI/4));
+				for (int i = 0; i < _scan.length; i++) {
+					_scan[i].update();
+					_scan[i].scan(_env);
+				}
 			}
 		}
 		@Override
