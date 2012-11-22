@@ -26,7 +26,7 @@ public class Agent implements Physical {
 	private Vector3f _steering;
 	
 	private float _max_force = 5.0f;
-	private float _max_speed = 10.0f;
+	private float _max_speed = 3.0f;
 	private float _mass = 10.0f;
 	
 	private int _behavior = SEEK;
@@ -151,6 +151,7 @@ public class Agent implements Physical {
 	/**
 	 * Update pos and speed according to behavior.
 	 */
+	@Override
 	public void update( float deltaT )
 	{
 		switch (_behavior) {
@@ -170,6 +171,10 @@ public class Agent implements Physical {
 			break;
 		}
 	}
+	@Override
+	public void scan(Environment env) {
+	}
+	
 	public void setupSeekBehavior( Point3f target) {
 		_target = target;
 	}
@@ -232,5 +237,4 @@ public class Agent implements Physical {
 	public void setBehavior(int _behavior) {
 		this._behavior = _behavior;
 	}
-
 }

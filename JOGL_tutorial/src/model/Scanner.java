@@ -10,7 +10,7 @@ import javax.vecmath.Vector3f;
  * @author snowgoon88ATgmailDOTcom
  *
  */
-public class Scanner {
+public class Scanner implements Physical {
 	
 	/** Relative orientation */
 	float _rang;
@@ -38,6 +38,7 @@ public class Scanner {
 	 * Look among all Wall of the Environment which one has the closest intersection.
 	 * @param env
 	 */
+	@Override
 	public void scan( Environment env ) {
 		// Current position
 		Point3f pos = getPos();
@@ -60,7 +61,8 @@ public class Scanner {
 	/**
 	 * When agent's angle has changed, update _obs.
 	 */
-	public void update() {	
+	@Override
+	public void update( float deltaT) {	
 		float aang = _agent.getAngOz()+_rang;
 		// set as if obstacle at maximum range
 		_obs = new Vector3f(_maxRange*(float)Math.cos(aang), _maxRange*(float)Math.sin(aang), 0f);	

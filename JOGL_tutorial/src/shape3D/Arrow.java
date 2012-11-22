@@ -52,6 +52,7 @@ public class Arrow {
 	public Arrow(Color4f _color_fg) {
 		super();
 		this._color_fg = _color_fg;
+		this._pos = new Point3f();
 		
 		_head_faces = new ArrayList<float[]>();
 		float face_1[] = {0,0,0, -_head_length,0,_head_width,   -_head_length,-_head_width,0};

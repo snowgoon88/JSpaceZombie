@@ -84,10 +84,12 @@ public class AgentGL implements IObjectGL {
 			// Draw speed as blue arrow
 			Arrow speedArrow = new Arrow( new Color4f( 0.0f,0.0f,1.0f,1.0f));
 			speedArrow.setup( _agent.getSpeed() );
+			//speedArrow.setPos( _agent.getPos() );
 			speedArrow.render(gl);
 			// Draw steering as red arrow
 			Arrow steerArrow = new Arrow( new Color4f( 1.0f,0.0f,0.0f,1.0f));
 			steerArrow.setup( _agent.getSteering() );
+			//steerArrow.setPos( _agent.getPos() );
 			steerArrow.render(gl);
 		}
 		

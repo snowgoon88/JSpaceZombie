@@ -33,6 +33,9 @@ public class Path {
 	public void addFirst( Point3f pt) {
 		_listWP.add(0, pt);
 	}
+	public void addLast( Point3f pt ) {
+		_listWP.add( pt );
+	}
 	public void concat( Path other) {
 		_listWP.addAll(other.getListWP());
 	}

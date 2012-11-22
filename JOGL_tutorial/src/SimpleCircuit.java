@@ -8,18 +8,23 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
+import javax.vecmath.Color4f;
 import javax.vecmath.Point3f;
+import javax.vecmath.Vector3f;
 
 import com.jogamp.opengl.util.FPSAnimator;
 
 import shape3D.AgentGL;
 import shape3D.EnvironmentGL;
+import shape3D.PathGL;
 import shape3D.ScannerGL;
 import shape3D.SceneGL;
 import utils.Matrix;
 
 import model.Agent;
 import model.Environment;
+import model.Path;
+import model.PhysicEngine;
 import model.Scanner;
 
 /**
@@ -32,9 +37,14 @@ import model.Scanner;
  */
 public class SimpleCircuit {
 	
+	PhysicEngine _engine = null;
 	Environment _env;
 	Agent _rob;
 	Scanner [] _scan;
+	Path _path;
+	
+	AgentGL _robGL;
+	
 	JFrame _frame;
 	
 	public static void main(String[] args) {
@@ -51,7 +61,7 @@ public class SimpleCircuit {
 		setupWorld();
 		
 		// Scene
-		SceneGL scene = new SceneGL();
+		SceneGL scene = new SceneGL(_engine);
 		setupScene(scene);
 		
 		// AWT Frame
@@ -84,10 +94,18 @@ public class SimpleCircuit {
 	}
 
 	public void setupWorld() {
+		// Environment
 		_env = new Environment();
+		// PhysicEngine
+		_engine = new PhysicEngine(_env);
+		_engine.setRunning(false);
+
+		// Agent
 		_rob = new Agent();
 		_rob.setPos(new Point3f(new float [] {0.0f, 4.0f, 0.0f}));
 		_rob.setAngOz(0.0f);
+		_engine.add(_rob);
+		// With some scanner
 		_scan = new Scanner[5];
 		_scan[0] = new Scanner(_rob, (float)Math.PI/2f, 2.0f);
 		_scan[1] = new Scanner(_rob, (float)Math.PI/6f, 2.0f);
@@ -95,21 +113,36 @@ public class SimpleCircuit {
 		_scan[3] = new Scanner(_rob, -(float)Math.PI/6f, 2.0f);
 		_scan[4] = new Scanner(_rob, -(float)Math.PI/2f, 2.0f);
 		for (int i = 0; i < _scan.length; i++) {
-			_scan[i].update();
+			_scan[i].update(0.0f);
 			_scan[i].scan(_env);
+			_engine.add(_scan[i]);
 		}
+		// And a Path to follow
+		_path = new Path();
+		_path.addLast( new Point3f(4f,3f,0f));
+		_path.addLast( new Point3f(3f,-2.5f,0f));
+		_path.addLast( new Point3f(-4f,-1f,0f));
+		_path.addLast( new Point3f(-3f,4f,0f));
+		_rob.setupFollowPathBehavior( _path, 0.5f);
+		_rob.setBehavior( Agent.FOLLOW);
 	}
 	public void setupScene(SceneGL scene) {
 		EnvironmentGL _envGL = new EnvironmentGL(_env);
 		scene.add(_envGL);
 
-		AgentGL _robGL = new AgentGL(_rob);
+		_robGL = new AgentGL(_rob);
+		_robGL._fg_debug = true;
 		scene.add(_robGL);
 		
 		for (int i = 0; i < _scan.length; i++) {
 			ScannerGL _scanGL = new ScannerGL(_scan[i]);
 			scene.add(_scanGL);
 		}
+		
+		PathGL _pathGL = new PathGL(_path);
+		_pathGL.setColor_fg( new Color4f( 0.0f, 1.0f, 0.0f, 0.5f));
+		_pathGL.setCycle(true);
+		scene.add(_pathGL);
 	}
 
 	class AgentKeyListener implements KeyListener {
@@ -128,7 +161,7 @@ public class SimpleCircuit {
 				pos.setY(pos.y + 0.5f * (float)Math.sin(_rob.getAngOz()));
 				_rob.setPos(pos);
 				for (int i = 0; i < _scan.length; i++) {
-					_scan[i].update();
+					_scan[i].update(0.0f);
 					_scan[i].scan(_env);
 				}
 			}
@@ -138,7 +171,7 @@ public class SimpleCircuit {
 				pos.setY(pos.y - 0.5f * (float)Math.sin(_rob.getAngOz()));
 				_rob.setPos(pos);
 				for (int i = 0; i < _scan.length; i++) {
-					_scan[i].update();
+					_scan[i].update(0.0f);
 					_scan[i].scan(_env);
 				}
 			}
@@ -146,16 +179,35 @@ public class SimpleCircuit {
 			else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 				_rob.setAngOz(Matrix.clipRAd(_rob.getAngOz()+(float)Math.PI/4));
 				for (int i = 0; i < _scan.length; i++) {
-					_scan[i].update();
+					_scan[i].update(0.0f);
 					_scan[i].scan(_env);
 				}
 			}
 			else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
 				_rob.setAngOz(Matrix.clipRAd(_rob.getAngOz()-(float)Math.PI/4));
 				for (int i = 0; i < _scan.length; i++) {
-					_scan[i].update();
+					_scan[i].update(0.0f);
 					_scan[i].scan(_env);
 				}
+			}
+			// VK_A : Robot speed to 0.
+			else if (e.getKeyCode() == KeyEvent.VK_A) {
+				_rob.setSpeed(new Vector3f());
+			}
+			// VK_Z : Show speed/steering vectors for Agent
+			else if (e.getKeyCode() == KeyEvent.VK_Z) {
+				_robGL._fg_debug = ! _robGL._fg_debug;
+			}
+			// VK_E : Print info on Agent
+			else if (e.getKeyCode() == KeyEvent.VK_E) {
+				System.out.println("Agent _pos="+_rob.getPos().toString()+" _speed="+_rob.getSpeed().toString());
+			}
+			
+			// VK_R : run Physical Engine
+			else if (e.getKeyCode() == KeyEvent.VK_R) {
+				//if( _engine.isRunning()) System.out.println("Engine STOP");
+				//else System.out.println("Engine START");
+				_engine.setRunning( !_engine.isRunning() );
 			}
 		}
 		@Override

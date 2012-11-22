@@ -1,12 +1,6 @@
 
 package shape3D;
 
-import shape3D.Basis;
-import shape3D.IObjectGL;
-import shape3D.VirtualSphereGL;
-import utils.Matrix;
-
-
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -25,6 +19,10 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.glu.GLU;
+
+import model.PhysicEngine;
+
+import utils.Matrix;
 
 import com.jogamp.common.nio.Buffers;
 
@@ -53,6 +51,8 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 	
 	/** Viewer */
 	private ArrayList<IObjectGL> _objects = new ArrayList<IObjectGL>();
+	/** Physical Engine */
+	private PhysicEngine _physical;
 	
 	// Running
 	private boolean _fg_run = false;
@@ -85,6 +85,19 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 	// Previous position of the mouse
 	private Point _prevMouse;
 	
+	/**
+	 * Create with a null PhysicEngine.
+	 */
+	public SceneGL() {
+		this._physical = null;
+	}
+	/**
+	 * Create with a PhysicEngine
+	 */
+	public SceneGL(PhysicEngine _physical) {
+		super();
+		this._physical = _physical;
+	}
 	
 	private void render(GL2 gl) {
 		// Scene render
@@ -200,14 +213,6 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 		_fg_picking = false;
 		// End of Picking
 	}
-	
-	private void update() {
-		long timeNow = System.nanoTime();
-		float deltaT = (float)(timeNow - _lastTime) / 1000000000.0f;
-		
-		_lastTime = timeNow;
-	}
-
 	
 	
 	@Override
@@ -352,8 +357,8 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 	public void display(GLAutoDrawable drawable) {
 		
 		// Update the model
-		if (_fg_run) {
-			update();	
+		if (_physical != null) {
+			_physical.update();	
 		}
 		
 		// Display : set up Scene
@@ -417,8 +422,13 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 		// Initialize the VirtualSphereGL.
 		setupVirtSphere(drawable.getWidth(), drawable.getHeight());
 		// Set the initial view angles.
-		Matrix.rotateZ(Matrix.deg2Rad(-45), _rotMatrix);
-		Matrix.rotateX(Matrix.deg2Rad(-60), _rotMatrix);
+		_rotMatrix = Matrix.identity();
+		Matrix.rotateZ(Matrix.deg2Rad(0), _rotMatrix);
+		Matrix.rotateX(Matrix.deg2Rad(0), _rotMatrix);
+		// Translate
+		_sceneTranslate.setLocation(0, 0);
+		// zoom
+		_zoom = 0.5f;
 	}
 
 	@Override
@@ -492,11 +502,11 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 			// Set the initial view angles.
 			_rotMatrix = Matrix.identity();
 			Matrix.rotateZ(Matrix.deg2Rad(-45), _rotMatrix);
-			Matrix.rotateX(Matrix.deg2Rad(-60), _rotMatrix);
+			Matrix.rotateX(Matrix.deg2Rad(60), _rotMatrix);
 			// Translate
 			_sceneTranslate.setLocation(0, 0);
 			// zoom
-			_zoom = 1.0f;
+			_zoom = 0.5f;
 		}
 		// VK_G : Grid on/off
 		else if (e.getKeyCode() == KeyEvent.VK_G) {
@@ -506,15 +516,10 @@ public class SceneGL implements GLEventListener, MouseListener, MouseMotionListe
 		else if (e.getKeyCode() == KeyEvent.VK_P) {
 			// Set the initial view angles.
 			_rotMatrix = Matrix.identity();
-			Matrix.rotateY(Matrix.deg2Rad(90), _rotMatrix);
-			Matrix.rotateX(Matrix.deg2Rad(90), _rotMatrix);
+			Matrix.rotateY(Matrix.deg2Rad(0), _rotMatrix);
+			Matrix.rotateX(Matrix.deg2Rad(0), _rotMatrix);
+			_zoom = 0.5f;
 		}
-		// VK_R : run Physical Engine
-		else if (e.getKeyCode() == KeyEvent.VK_R) {
-			_lastTime = System.nanoTime();
-			_fg_run = ! _fg_run;
-		}
-		
 	}
 
 	@Override

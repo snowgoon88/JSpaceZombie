@@ -20,7 +20,7 @@ import model.Path;
  * @author @author snowgoon88ATgmailDOTcom
  *
  */
-public class PathGL {
+public class PathGL implements IObjectGL {
 	/** model linked */
 	private Path _path;
 	/** Color of the path */
@@ -34,6 +34,11 @@ public class PathGL {
 	
 	public void render( GL2 gl )  {
 		drawPath(gl);
+	}
+	@Override
+	public void renderSelect(GL2 gl) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	private void drawPath( GL2 gl ) {
@@ -99,5 +104,4 @@ public class PathGL {
 	public void setCycle(boolean fg_cycle) {
 		this._fg_cycle = fg_cycle;
 	}
-
 }
