@@ -163,10 +163,10 @@ public class Basis {
 		// disable lighting
 	    //gl.glDisable(GL2.GL_LIGHTING);
 
-	    gl.glBegin(GL2.GL_LINES);
-	    gl.glEnable( GL2.GL_LINE_SMOOTH );
+		gl.glEnable( GL2.GL_LINE_SMOOTH );
 	    gl.glLineWidth( 0.1f );
 	    gl.glColor3f(0.3f, 0.3f, 0.3f);
+	    gl.glBegin(GL2.GL_LINES);
 	    for(float i=step; i <= size; i+= step)
 	    {
 	        gl.glVertex3f(-size, i, 0);   // lines parallel to X-axis

@@ -1,3 +1,4 @@
+
 import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -30,6 +31,11 @@ public class SceneViewer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		SceneViewer app = new SceneViewer();
+		app.buildGUI();
+	}
+	
+	public void buildGUI() {
 		// JOGL components, GLContext automatically created in GLCanvas
 		GLProfile glp = GLProfile.getDefault();
 		GLCapabilities caps = new GLCapabilities(glp);
@@ -38,8 +44,8 @@ public class SceneViewer {
 		// Scene
 		SceneGL scene = new SceneGL();
 
-		// AWT Frame
-		_frame = new JFrame("Arm - Java2D API");
+		// Swing Frame
+		_frame = new JFrame("jArm - Java2D API");
 		_frame.setSize(600,600);
 		_frame.setLayout(new BorderLayout());
 		_frame.addWindowListener(new WindowAdapter() {
