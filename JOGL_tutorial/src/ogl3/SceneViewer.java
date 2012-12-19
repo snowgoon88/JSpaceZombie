@@ -1,3 +1,4 @@
+package ogl3;
 
 import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
@@ -9,8 +10,6 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
-
-import shape3D.SceneGL;
 
 import com.jogamp.opengl.util.FPSAnimator;
 
@@ -43,7 +42,7 @@ public class SceneViewer {
 		GLCanvas canvas = new GLCanvas(caps);
 
 		// Scene
-		SceneGL scene = new SceneGL();
+		SceneGL3 scene = new SceneGL3();
 
 		// Swing Frame
 		_frame = new JFrame("jArm - Java2D API");
@@ -62,9 +61,9 @@ public class SceneViewer {
 
 		// Add scene as event listener for drawing
         canvas.addGLEventListener(scene);
-        canvas.addMouseListener(scene);
-        canvas.addMouseMotionListener(scene);
-        canvas.addKeyListener(scene);
+        //canvas.addMouseListener(scene);
+        //canvas.addMouseMotionListener(scene);
+        //canvas.addKeyListener(scene);
         
         // Animator with consistent FPS
         FPSAnimator animator = new FPSAnimator(canvas, 60);
@@ -93,4 +92,5 @@ public class SceneViewer {
 		public void keyReleased(KeyEvent e) {
 		}
 	}
+
 }
