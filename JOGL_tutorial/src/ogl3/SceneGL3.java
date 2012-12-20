@@ -70,7 +70,7 @@ public class SceneGL3 implements GLEventListener {
 		float [] vertexData  = {
 				-1.0f, -1.0f, 0.0f,
 				1.0f, -1.0f, 0.0f,
-				0.0f,  1.0f, 0.0f,
+				0.0f,  1.0f, 0.0f
 		};
 		_vertexBuffer = Buffers.newDirectFloatBuffer(vertexData);
 		
