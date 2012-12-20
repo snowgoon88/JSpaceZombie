@@ -1,12 +1,15 @@
 #version 330 core
 
+// Input
+smooth in vec4 theColor;
+
 // Ouput data
-out vec4 color;
+out vec4 outputColor;
 
 void main()
 {
 
-	// Output color = red 
-	color = vec4(1.0f,0.0f,0.0f,1.0f);
+	// Output color = copy with interpolation from vertex (smooth) 
+	outputColor = theColor;
 
 }
